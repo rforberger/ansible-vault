@@ -1,0 +1,45 @@
+---
+
+- name: install pkgs
+  ansible.builtin.apt:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - gnupg
+
+- name: Install apt key
+  ansible.builtin.apt_key:
+    url: https://apt.releases.hashicorp.com/gpg
+    state: present
+
+- name: Install apt repo
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+    state: present
+
+
+- name: install pkgs
+  ansible.builtin.apt:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - vault
+
+- name: Rollout config
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "{{ item }}"
+  loop:
+    - "/etc/vault.d/config.hcl"
+    - "/etc/systemd/system/security-vault.service"
+    - "/etc/systemd/system/security-vault.service.d/env.conf"
+  notify:
+    - security-vault-reloaded
+
+- name: Start security-vault
+  ansible.builtin.systemd:
+    name: "security-vault"
+    enabled: true
+    state: started

@@ -1,0 +1,9 @@
+---
+
+- name: security-vault-reloaded
+  ansible.builtin.service:
+    name: security-vault
+    state: reloaded
+
+
+
